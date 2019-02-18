@@ -104,7 +104,7 @@ public class SimpleFSM : FSM
         }
        if(playerTransform)
         {
-            curRotSpeed = 100f;
+            curRotSpeed = 150f;
             transform.RotateAround(playerTransform.transform.position, rotationMask, curRotSpeed * Time.deltaTime);
             Quaternion turretRotation = Quaternion.LookRotation(destPos - turret.position);
             turret.rotation = Quaternion.Slerp(turret.rotation, turretRotation, Time.deltaTime * curRotSpeed);
