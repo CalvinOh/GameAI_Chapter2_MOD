@@ -12,6 +12,7 @@ public class SimpleFSM : FSM
         Attack,
         Dead,
         Drift,
+        Frenzy,
     }
 
     [SerializeField]
@@ -83,6 +84,7 @@ public class SimpleFSM : FSM
             case FSMState.Attack: UpdateAttackState(); break;
             case FSMState.Dead: UpdateDeadState(); break;
             case FSMState.Drift: UpdateDriftState(); break;
+            case FSMState.Frenzy: UpdateFrenzyState(); break;
         }
 
         //Update the time
@@ -91,6 +93,34 @@ public class SimpleFSM : FSM
         //Go to dead state is no health left
         if (health <= 0)
             curState = FSMState.Dead;
+    }
+
+    private void UpdateFrenzyState()
+    {
+        destPos = playerTransform.position;
+
+        if (elapsedTime <= 5f)
+        {
+            Quaternion turretRotation = Quaternion.LookRotation(destPos - turret.position);
+            turret.rotation = Quaternion.Slerp(turret.rotation, turretRotation, Time.deltaTime * curRotSpeed);
+
+            FrenzyShooting();
+        }
+        else if (UnityEngine.Random.Range(0,11) > 9)
+        {
+            curState = FSMState.Frenzy;
+        }
+        else
+        {
+            print("UN-FRENZIED");
+            curState = FSMState.Patrol;
+        }
+        
+    }
+
+    private void FrenzyShooting()
+    {
+       Instantiate(Bullet, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
     }
 
     protected void UpdateDriftState()
@@ -186,14 +216,24 @@ public class SimpleFSM : FSM
         float dist = Vector3.Distance(transform.position, playerTransform.position);
         if (dist >= 200.0f && dist < 300.0f)
         {
-            //Rotate to the target point
-            Quaternion targetRotation = Quaternion.LookRotation(destPos - transform.position);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * curRotSpeed);  
 
-            //Go Forward
-            transform.Translate(Vector3.forward * Time.deltaTime * curSpeed);
+            if(UnityEngine.Random.Range(0,101) >= 80)
+            {
+                curState = FSMState.Frenzy;
+                print("FRENZIED");
+            }
+            else
+            {
+                //Rotate to the target point
+                Quaternion targetRotation = Quaternion.LookRotation(destPos - transform.position);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * curRotSpeed);
 
-            curState = FSMState.Attack;
+                //Go Forward
+                transform.Translate(Vector3.forward * Time.deltaTime * curSpeed);
+
+                curState = FSMState.Attack;
+            }
+
         }
         //Transition to patrol is the tank become too far
         else if (dist >= 300.0f)
